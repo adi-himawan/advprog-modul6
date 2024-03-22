@@ -60,7 +60,7 @@ Berikut ini adalah perubahan baru pada function handle_connection.
     };
     ...
 ```
-- Pertama, program akan mengecek path yang di-request oleh browser dan menyimpannya di variable `request_line`. Secara sederhana, baris kode ini berfungsi untuk mengakses request line yang menjadi baris pertama dari HTTP request.
+- Pertama, program akan mengecek path yang di-request oleh browser dan menyimpannya di variabel `request_line`. Secara sederhana, baris kode ini berfungsi untuk mengakses request line yang menjadi baris pertama dari HTTP request.
 - Setelah itu, pada bagian berikutnya, saya memanfaatkan conditional untuk menetapkan nilai dari variabel status_line serta filename berdasarkan nilai `request_line`.
 - Program akan menyusun HTTP response berdasarkan nilai status_line dan filename yang sudah ditentukan. Dengan begitu, program dapat memberikan HTTP response yang sesuai.
 
@@ -82,3 +82,22 @@ Perubahan kode yang akhirnya saya commit sudah melewati tahap refactoring. Sebag
     ...
 ```
 Jika dibandingkan, dapat dilihat bahwa function handle_connection sebelum melewati tahap refactoring memiliki banyak duplicated code. Hal ini tentunya dapat mengurangi code maintainability. Oleh karena itu, dilakukan refactoring pada function ini.
+
+#### Commit 4 Reflection
+Berikut ini adalah perubahan baru pada function handle_connection.
+```rust
+    ...
+    let (status_line, filename) = match &request_line[..] {
+        "GET / HTTP/1.1" => ("HTTP/1.1 200 OK", "hello.html"),
+        "GET /sleep HTTP/1.1" => {
+            thread::sleep(Duration::from_secs(10));
+            ("HTTP/1.1 200 OK", "hello.html")
+        }
+        _ => ("HTTP/1.1 404 NOT FOUND", "error.html"),
+    };
+    ...
+```
+- Jika sebelumnya potongan kode di atas menggunakan conditional, potongan kode ini sekarang menggunakan `match` untuk menentukan nilai status_file dan filename berdasarkan path yang di-request oleh browser.
+- Selain itu, ditambahkan request line baru, yakni `GET /sleep HTTP/1.1` untuk menangani endpoint /sleep. Jika program menerima HTTP request dengan request line ini, program akan menjalankan `thread::sleep(Duration::from_secs(10))` untuk memberikan efek loading selama 10 detik sebelum memberikan HTTP response yang sesuai. 
+
+Dengan mengakses `http://127.0.0.1:7878/` dan `http://127.0.0.1:7878/sleep` di saat yang sama, kita dapat membuat simulasi slow request. Pada simulasi ini, dapat dilihat bagaimana server yang berbasis single-threaded menangani lebih dari 1 HTTP request di saat yang sama. Ternyata, dalam skala yang lebih besar, penggunaan server berbasis single-threaded sangat tidak efisien karena memerlukan waktu yang lebih lama untuk memproses lebih dari 1 HTTP request.
