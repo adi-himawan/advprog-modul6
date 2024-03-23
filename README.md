@@ -1,6 +1,6 @@
-## Reflection 1
+## Module 6 Reflection
 
-#### Commit 1 Reflection
+### Commit 1 Reflection
 Function handle_connection berfungsi untuk menangani data dari sebuah TCP stream. Pertama-tama, kita perlu mengimpor std::io::prelude dan std::io::BufReader untuk mengakses semua resources yang sekiranya diperlukan dalam function ini. Setelah itu, kita akan membuat instance BufReader yang memiliki parameter reference dari stream.
 ```rust
 let buf_reader = BufReader::new(&mut stream);
@@ -22,7 +22,9 @@ let http_request: Vec<_> = buf_reader
 
 Terakhir, isi dari variabel `http_request` ini akan di-print untuk kemudian ditampilkan ke terminal.
 
-#### Commit 2 Reflection
+---
+
+### Commit 2 Reflection
 Commit 2 Screen Capture
 ![Commit 2 screen capture](/assets/images/commit2.png)
 
@@ -43,7 +45,9 @@ Baris-baris tambahan dalam function handle_connection berfungsi untuk mengirimka
 - Sebuah HTTP response lengkap yang terdiri dari header dan body akan disusun. HTTP response ini akan terdiri atas status line, header Content-Length, serta file hello.html sebagai body.
 - Dengan `stream.write_all(response.as_bytes())`, HTTP response yang telah disusun ini akan dikonversi ke dalam bentuk byte dan ditulis ke stream.
 
-#### Commit 3 Reflection
+---
+
+### Commit 3 Reflection
 Commit 3 Screen Capture
 ![Commit 3 screen capture](/assets/images/commit3.png)
 
@@ -83,7 +87,9 @@ Perubahan kode yang akhirnya saya commit sudah melewati tahap refactoring. Sebag
 ```
 Jika dibandingkan, dapat dilihat bahwa function handle_connection sebelum melewati tahap refactoring memiliki banyak duplicated code. Hal ini tentunya dapat mengurangi code maintainability. Oleh karena itu, dilakukan refactoring pada function ini.
 
-#### Commit 4 Reflection
+---
+
+### Commit 4 Reflection
 Berikut ini adalah perubahan baru pada function handle_connection.
 ```rust
     ...
@@ -101,3 +107,8 @@ Berikut ini adalah perubahan baru pada function handle_connection.
 - Selain itu, ditambahkan request line baru, yakni `GET /sleep HTTP/1.1` untuk menangani endpoint /sleep. Jika program menerima HTTP request dengan request line ini, program akan menjalankan `thread::sleep(Duration::from_secs(10))` untuk memberikan efek loading selama 10 detik sebelum memberikan HTTP response yang sesuai. 
 
 Dengan mengakses `http://127.0.0.1:7878/` dan `http://127.0.0.1:7878/sleep` di saat yang sama, kita dapat membuat simulasi slow request. Pada simulasi ini, dapat dilihat bagaimana server yang berbasis single-threaded menangani lebih dari 1 HTTP request di saat yang sama. Ternyata, dalam skala yang lebih besar, penggunaan server berbasis single-threaded sangat tidak efisien karena memerlukan waktu yang lebih lama untuk memproses lebih dari 1 HTTP request.
+
+---
+
+### Commit 5 Reflection
+Untuk membuat server berbasis multi-threaded, kita dapat membuat sebuah ThreadPool. Sebagai analogi, kita perlu membuat Worker (Thread) yang bertugas untuk "mengerjakan" suatu Job (misalnya HTTP request atau task tertentu). Ketika ThreadPool menerima suatu Job, ThreadPool akan mengirimkan sinyal ke Receiver milik salah satu Worker. Worker yang menerima sinyal tersebut kemudian akan me-lock Receiver-nya serta "mengerjakan" Job yang diberikan. Setelah Job tersebut selesai, Worker yang bekerja akan kembali me-unlock Receiver-nya. Singkatnya, mekanisme ini diperlukan untuk memastikan hanya ada 1 Worker yang bekerja sehingga mencegah konflik dalam pengerjaan Job. Dengan cara ini, sistem kerja berbasis multi-threaded dapat diimplementasikan secara efektif.
